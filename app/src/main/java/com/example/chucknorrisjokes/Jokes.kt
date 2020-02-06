@@ -1,7 +1,7 @@
 package com.example.chucknorrisjokes
 
 object Jokes {
-    var jokes = listOf<String>(
+    val jokes = listOf<String>(
         "Chuck Norris can make a movie with 75 cents and a dirty look.",
         "Big Foot claims he has a couple pictures of Chuck Norris... All his friends think he's full of crap.",
         "December 1 2013 will be the day Chuck Norris gets a playstation 5.",
@@ -13,8 +13,4 @@ object Jokes {
         "Chuck Norris can slit your throat with his pinkie toenail.",
         "Chuck Norris' favorite flavor of gum is Tarantula."
     )
-        set(value){
-            field = value
-            JokeAdapter(this)
-        }
 }

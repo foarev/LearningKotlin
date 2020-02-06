@@ -15,10 +15,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         Log.wtf(TAG, Jokes.jokes.toString())
         val llm = LinearLayoutManager(this)
-        val ad = JokeAdapter(Jokes)
+        val ad = JokeAdapter()
+        ad.jokes = Jokes.jokes
         my_recycler_view.layoutManager = llm
         my_recycler_view.adapter = ad
-
-
     }
 }
