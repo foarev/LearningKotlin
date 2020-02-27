@@ -2,15 +2,16 @@ package com.example.chucknorrisjokes
 
 object Jokes {
     val jokes = listOf<String>(
-        "Chuck Norris can make a movie with 75 cents and a dirty look.",
-        "Big Foot claims he has a couple pictures of Chuck Norris... All his friends think he's full of crap.",
-        "December 1 2013 will be the day Chuck Norris gets a playstation 5.",
-        "When Chuck Norris was asked if he believed that the world was going to end in 2012 he resonded: \"Depends how I'm feeling that day.\"",
-        "Chuck Norris is the answer to all your problems.",
-        "Chuck Norris' jock strap has 2 bag restraint holders.",
-        "Chuck Norris always puts his occupation as Chuck Norris",
-        "one the boy said HELP HELP ITS CHUCK NORRIS",
-        "Chuck Norris can slit your throat with his pinkie toenail.",
-        "Chuck Norris' favorite flavor of gum is Tarantula."
+        """{
+          "categories": [
+            
+          ],
+          "created_at": "2020-01-05 13:42:26.766831",
+          "icon_url": "https://assets.chucknorris.host/img/avatar/chuck-norris.png",
+          "id": "pyNXTV7WThiNLRykGsQmrg",
+          "updated_at": "2020-01-05 13:42:26.766831",
+          "url": "https://api.chucknorris.io/jokes/pyNXTV7WThiNLRykGsQmrg",
+          "value": "The hills are alive with the sound of Chuck Norris' dong slapping against his legs while he walks."
+        }"""
     )
 }

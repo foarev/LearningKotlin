@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.serialization.json.*
+import kotlinx.serialization.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -16,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         Log.wtf(TAG, Jokes.jokes.toString())
         val llm = LinearLayoutManager(this)
         val ad = JokeAdapter()
-        ad.jokes = Jokes.jokes
+        ad.jokes = Jokes.jokes.map { Json(JsonConfiguration.Stable).parse(Joke.serializer(), it) }
         my_recycler_view.layoutManager = llm
         my_recycler_view.adapter = ad
     }

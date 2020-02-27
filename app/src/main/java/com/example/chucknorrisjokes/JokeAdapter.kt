@@ -11,7 +11,7 @@ class JokeAdapter() : RecyclerView.Adapter<JokeAdapter.JokeViewHolder>(){
     val TAG:String = "JokeAdapter"
     class JokeViewHolder(val v: TextView) : RecyclerView.ViewHolder(v)
 
-    var jokes:List<String> = listOf()
+    var jokes:List<Joke> = listOf()
         set(value){
             field = value
             notifyDataSetChanged()
@@ -28,6 +28,6 @@ class JokeAdapter() : RecyclerView.Adapter<JokeAdapter.JokeViewHolder>(){
     }
 
     override fun onBindViewHolder(holder: JokeViewHolder, position: Int) {
-        holder.v.text = Jokes.jokes[position]
+        holder.v.text = jokes[position].value
     }
 }
