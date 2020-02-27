@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.*
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
@@ -13,8 +14,8 @@ import kotlinx.serialization.json.*
 
 
 class MainActivity : AppCompatActivity() {
-    val TAG:String = "MAIN"
-
+    val TAG: String = "MAIN"
+    val cd = CompositeDisposable()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -25,8 +26,9 @@ class MainActivity : AppCompatActivity() {
         my_recycler_view.layoutManager = llm
         my_recycler_view.adapter = ad
 
-        val joke_service:JokeApiService = JokeApiServiceFactory.factoryBuilder()
-        joke_service
+        val joke_service: JokeApiService = JokeApiServiceFactory.factoryBuilder()
+
+        cd.add(joke_service
             .giveMeAJoke()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -34,6 +36,7 @@ class MainActivity : AppCompatActivity() {
                 onError = { e -> Log.wtf(TAG, e) },
                 onSuccess = { joke -> Log.wtf(TAG, "$joke") }
             )
+        )
 
     }
 }
