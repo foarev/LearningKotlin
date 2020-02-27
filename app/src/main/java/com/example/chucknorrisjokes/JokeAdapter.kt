@@ -24,7 +24,7 @@ class JokeAdapter() : RecyclerView.Adapter<JokeAdapter.JokeViewHolder>(){
     }
 
     override fun getItemCount(): Int {
-        return Jokes.jokes.count()
+        return jokes.count()
     }
 
     override fun onBindViewHolder(holder: JokeViewHolder, position: Int) {
