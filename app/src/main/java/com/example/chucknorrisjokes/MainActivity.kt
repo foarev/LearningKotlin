@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.serialization.json.*
 import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 
 class MainActivity : AppCompatActivity() {
