@@ -10,6 +10,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.*
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
@@ -24,10 +25,13 @@ class MainActivity : AppCompatActivity() {
         val ad = JokeAdapter()
         val jokeService: JokeApiService = JokeApiServiceFactory.factoryBuilder()
 
+        loader.visibility = View.VISIBLE
         cd.add(jokeService
             .giveMeAJoke()
             .subscribeOn(Schedulers.io())
+            .delay(500, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
+            .doAfterTerminate {loader.visibility = View.GONE}
             .subscribeBy(
                 onError = { e -> Log.wtf(TAG, e) },
                 onSuccess = {
@@ -36,14 +40,18 @@ class MainActivity : AppCompatActivity() {
                 }
             )
         )
+
         my_recycler_view.layoutManager = llm
         my_recycler_view.adapter = ad
 
         addJokeButton.setOnClickListener {
+            loader.visibility = View.VISIBLE
             cd.add(jokeService
                 .giveMeAJoke()
                 .subscribeOn(Schedulers.io())
+                .delay(500, TimeUnit.MILLISECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
+                .doAfterTerminate {loader.visibility = View.GONE}
                 .subscribeBy(
                     onError = { e -> Log.wtf(TAG, e) },
                     onSuccess = {
