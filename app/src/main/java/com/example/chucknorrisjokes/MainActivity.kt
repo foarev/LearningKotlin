@@ -30,14 +30,13 @@ class MainActivity : AppCompatActivity() {
             .giveMeAJoke()
             .subscribeOn(Schedulers.io())
             .delay(500, TimeUnit.MILLISECONDS)
+            .repeat(10)
             .observeOn(AndroidSchedulers.mainThread())
             .doAfterTerminate {loader.visibility = View.GONE}
             .subscribeBy(
                 onError = { e -> Log.wtf(TAG, e) },
-                onSuccess = {
-                    joke -> jokes.add(joke)
-                    ad.jokes=jokes
-                }
+                onNext = {joke -> jokes.add(joke)},
+                onComplete = {ad.jokes=jokes}
             )
         )
 
@@ -50,14 +49,13 @@ class MainActivity : AppCompatActivity() {
                 .giveMeAJoke()
                 .subscribeOn(Schedulers.io())
                 .delay(500, TimeUnit.MILLISECONDS)
+                .repeat(10)
                 .observeOn(AndroidSchedulers.mainThread())
                 .doAfterTerminate {loader.visibility = View.GONE}
                 .subscribeBy(
                     onError = { e -> Log.wtf(TAG, e) },
-                    onSuccess = {
-                            joke -> jokes.add(joke)
-                        ad.jokes=jokes
-                    }
+                    onNext = {joke -> jokes.add(joke)},
+                    onComplete = {ad.jokes=jokes}
                 )
             )
         }
