@@ -7,8 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 
-class JokeAdapter() : RecyclerView.Adapter<JokeAdapter.JokeViewHolder>(){
+class JokeAdapter(onBottomReachedParam: () -> Unit) : RecyclerView.Adapter<JokeAdapter.JokeViewHolder>(){
     val TAG:String = "JokeAdapter"
+    val onBottomReached: () -> Unit = onBottomReachedParam
     class JokeViewHolder(val v: TextView) : RecyclerView.ViewHolder(v)
 
     var jokes:List<Joke> = listOf()
@@ -29,5 +30,8 @@ class JokeAdapter() : RecyclerView.Adapter<JokeAdapter.JokeViewHolder>(){
 
     override fun onBindViewHolder(holder: JokeViewHolder, position: Int) {
         holder.v.text = jokes[position].value
+        if (position >= jokes.count()-1) {
+            onBottomReached()
+        }
     }
 }
