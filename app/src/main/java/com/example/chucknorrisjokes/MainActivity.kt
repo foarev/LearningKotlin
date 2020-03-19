@@ -60,14 +60,24 @@ class MainActivity : AppCompatActivity() {
             val shareIntent = Intent.createChooser(sendIntent, null)
             startActivity(shareIntent)
         }
-        val onClickStar: (Joke) -> Unit = {
-            Log.wtf(TAG, it.id)
+        val onClickStar: (Joke, Boolean) -> Unit = {joke: Joke, starred: Boolean ->
+            if(starred){
+                val sharedPrefs = SharedPrefs()
+                if(sharedPrefs.getFavorites(this)!=null)
+                    sharedPrefs.addFavorite(this, joke)
+                else {
+                    val favJokes: MutableList<Joke> = mutableListOf()
+                    favJokes.add(joke)
+                    sharedPrefs.saveFavorites(this, favJokes)
+                }
+            } else {
+                SharedPrefs().removeFavorite(this, joke)
+            }
         }
-        ad = JokeAdapter(addJoke, onClickShare, onClickStar)
+        ad = JokeAdapter(this, addJoke, onClickShare, onClickStar)
 
 
         val onItemMoved: (Int, Int) -> Unit = { fromPosition:Int, toPosition: Int ->
-            Log.wtf(TAG, "onItemMoved")
             if (fromPosition < toPosition) {
                 for (i in fromPosition until toPosition) {
                     Collections.swap(ad.jokes, i, i + 1)
@@ -89,10 +99,18 @@ class MainActivity : AppCompatActivity() {
         my_recycler_view.layoutManager = llm
         my_recycler_view.adapter = ad
 
+
         if (savedInstanceState != null) {
             parse(dataListSerializer, savedInstanceState?.getString(JOKE_LIST_KEY)).forEach{jokes.add(it)}
             ad.jokes = jokes
-        } else {addJoke()}
+        } else {
+            SharedPrefs().getFavorites(this)?.forEach {
+                if (it != null) {
+                    jokes.add(it)
+                }
+            }
+            addJoke()
+        }
 
     }
 
