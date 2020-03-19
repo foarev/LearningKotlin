@@ -1,23 +1,20 @@
 package com.example.chucknorrisjokes
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.*
+import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json.Companion.parse
 import kotlinx.serialization.json.Json.Companion.stringify
 import kotlinx.serialization.list
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -51,7 +48,34 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         }
-        ad = JokeAdapter(addJoke)
+        val onClickShare: (Joke) -> Unit = {
+            Log.wtf(TAG, it.id)
+        }
+        val onClickStar: (Joke) -> Unit = {
+            Log.wtf(TAG, it.id)
+        }
+        ad = JokeAdapter(addJoke, onClickShare, onClickStar)
+
+
+        val onItemMoved: (Int, Int) -> Unit = { fromPosition:Int, toPosition: Int ->
+            Log.wtf(TAG, "onItemMoved")
+            if (fromPosition < toPosition) {
+                for (i in fromPosition until toPosition) {
+                    Collections.swap(ad.jokes, i, i + 1)
+                }
+            } else {
+                for (i in fromPosition downTo toPosition + 1) {
+                    Collections.swap(ad.jokes, i, i - 1)
+                }
+            }
+            ad.notifyItemMoved(fromPosition, toPosition)
+        }
+        val onJokeRemoved: (Int, Int) -> Unit = { position: Int, swipeDir: Int ->
+            Log.wtf(TAG, "onJokeRemoved")
+            ad.jokes.removeAt(position)
+            ad.notifyItemRemoved(position)
+        }
+        JokeTouchHelper(onItemMoved, onJokeRemoved).attachToRecyclerView(my_recycler_view)
 
         my_recycler_view.layoutManager = llm
         my_recycler_view.adapter = ad
