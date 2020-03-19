@@ -1,5 +1,6 @@
 package com.example.chucknorrisjokes
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -50,6 +51,14 @@ class MainActivity : AppCompatActivity() {
         }
         val onClickShare: (Joke) -> Unit = {
             Log.wtf(TAG, it.id)
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, it.value)
+                type = "text/plain"
+            }
+
+            val shareIntent = Intent.createChooser(sendIntent, null)
+            startActivity(shareIntent)
         }
         val onClickStar: (Joke) -> Unit = {
             Log.wtf(TAG, it.id)
