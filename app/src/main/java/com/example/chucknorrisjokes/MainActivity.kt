@@ -3,7 +3,6 @@ package com.example.chucknorrisjokes
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -34,14 +33,15 @@ class MainActivity : AppCompatActivity() {
         val llm = LinearLayoutManager(this)
         val jokeService: JokeApiService = JokeApiServiceFactory.factoryBuilder()
 
-        val addJoke: () -> Unit = {loader.visibility = View.VISIBLE
+        val addJoke: () -> Unit = {
+            swipe_refresh_layout.isRefreshing = true
             cd.add(jokeService
                 .giveMeAJoke()
                 .subscribeOn(Schedulers.io())
                 .delay(50, TimeUnit.MILLISECONDS)
                 .repeat(10)
                 .observeOn(AndroidSchedulers.mainThread())
-                .doAfterTerminate {loader.visibility = View.GONE}
+                .doAfterTerminate {swipe_refresh_layout.isRefreshing = false}
                 .subscribeBy(
                     onError = { e -> Log.wtf(TAG, e) },
                     onNext = {joke -> jokes.add(joke)},
@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
             }
             ad.notifyItemMoved(fromPosition, toPosition)
         }
-        val onJokeRemoved: (Int, Int) -> Unit = { position: Int, swipeDir: Int ->
+        val onJokeRemoved: (Int, Int) -> Unit = { position: Int, _: Int ->
             Log.wtf(TAG, "onJokeRemoved")
             ad.jokes.removeAt(position)
             ad.notifyItemRemoved(position)
@@ -99,11 +99,20 @@ class MainActivity : AppCompatActivity() {
         my_recycler_view.layoutManager = llm
         my_recycler_view.adapter = ad
 
-
         if (savedInstanceState != null) {
-            parse(dataListSerializer, savedInstanceState?.getString(JOKE_LIST_KEY)).forEach{jokes.add(it)}
+            parse(dataListSerializer, savedInstanceState.getString(JOKE_LIST_KEY)).forEach{jokes.add(it)}
             ad.jokes = jokes
         } else {
+            SharedPrefs().getFavorites(this)?.forEach {
+                if (it != null) {
+                    jokes.add(it)
+                }
+            }
+            addJoke()
+        }
+
+        swipe_refresh_layout.setOnRefreshListener {
+            jokes.removeAll(jokes)
             SharedPrefs().getFavorites(this)?.forEach {
                 if (it != null) {
                     jokes.add(it)
