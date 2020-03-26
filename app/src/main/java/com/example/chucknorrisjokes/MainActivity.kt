@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity() {
     val TAG: String = "MAIN"
     val cd = CompositeDisposable()
-    val jokes: MutableList<Joke> = mutableListOf()
     val JOKE_LIST_KEY:String = "JOKE_LIST_KEY"
     val dataListSerializer = Joke.serializer().list
     lateinit var ad:JokeAdapter
@@ -33,22 +32,6 @@ class MainActivity : AppCompatActivity() {
         val llm = LinearLayoutManager(this)
         val jokeService: JokeApiService = JokeApiServiceFactory.factoryBuilder()
 
-        val addJoke: () -> Unit = {
-            swipe_refresh_layout.isRefreshing = true
-            cd.add(jokeService
-                .giveMeAJoke()
-                .subscribeOn(Schedulers.io())
-                .delay(50, TimeUnit.MILLISECONDS)
-                .repeat(10)
-                .observeOn(AndroidSchedulers.mainThread())
-                .doAfterTerminate {swipe_refresh_layout.isRefreshing = false}
-                .subscribeBy(
-                    onError = { e -> Log.wtf(TAG, e) },
-                    onNext = {joke -> jokes.add(joke)},
-                    onComplete = {ad.jokes=jokes}
-                )
-            )
-        }
         val onClickShare: (Joke) -> Unit = {
             Log.wtf(TAG, it.id)
             val sendIntent: Intent = Intent().apply {
@@ -74,48 +57,68 @@ class MainActivity : AppCompatActivity() {
                 SharedPrefs().removeFavorite(this, joke)
             }
         }
-        ad = JokeAdapter(this, addJoke, onClickShare, onClickStar)
 
+        val addJoke: () -> Unit = {
+            swipe_refresh_layout.isRefreshing = true
+            cd.add(jokeService
+                .giveMeAJoke()
+                .subscribeOn(Schedulers.io())
+                .delay(50, TimeUnit.MILLISECONDS)
+                .repeat(10)
+                .observeOn(AndroidSchedulers.mainThread())
+                .doAfterTerminate {swipe_refresh_layout.isRefreshing = false}
+                .subscribeBy(
+                    onError = { e -> Log.wtf(TAG, e) },
+                    onNext = {joke ->
+                        ad.models.add(JokeView.Model(joke, SharedPrefs().getFavorites(this)?.contains(joke)!!, onClickShare, onClickStar))
+                    },
+                    onComplete = {
+                        ad.notifyDataSetChanged()
+                    }
+                )
+            )
+        }
+        ad = JokeAdapter(addJoke)
 
         val onItemMoved: (Int, Int) -> Unit = { fromPosition:Int, toPosition: Int ->
             if (fromPosition < toPosition) {
                 for (i in fromPosition until toPosition) {
-                    Collections.swap(ad.jokes, i, i + 1)
+                    Collections.swap(ad.models, i, i + 1)
                 }
             } else {
                 for (i in fromPosition downTo toPosition + 1) {
-                    Collections.swap(ad.jokes, i, i - 1)
+                    Collections.swap(ad.models, i, i - 1)
                 }
             }
             ad.notifyItemMoved(fromPosition, toPosition)
         }
         val onJokeRemoved: (Int, Int) -> Unit = { position: Int, _: Int ->
             Log.wtf(TAG, "onJokeRemoved")
-            ad.jokes.removeAt(position)
+            ad.models.removeAt(position)
             ad.notifyItemRemoved(position)
         }
-        JokeTouchHelper(onItemMoved, onJokeRemoved).attachToRecyclerView(my_recycler_view)
+        JokeTouchHelper(onItemMoved, onJokeRemoved, swipe_refresh_layout).attachToRecyclerView(my_recycler_view)
 
         my_recycler_view.layoutManager = llm
         my_recycler_view.adapter = ad
 
         if (savedInstanceState != null) {
-            parse(dataListSerializer, savedInstanceState.getString(JOKE_LIST_KEY)).forEach{jokes.add(it)}
-            ad.jokes = jokes
+            parse(dataListSerializer, savedInstanceState.getString(JOKE_LIST_KEY)).forEach{
+                ad.models.add(JokeView.Model(it, SharedPrefs().getFavorites(this)?.contains(it)!!, onClickShare, onClickStar))
+            }
         } else {
             SharedPrefs().getFavorites(this)?.forEach {
                 if (it != null) {
-                    jokes.add(it)
+                    ad.models.add(JokeView.Model(it, SharedPrefs().getFavorites(this)?.contains(it)!!, onClickShare, onClickStar))
                 }
             }
             addJoke()
         }
-
         swipe_refresh_layout.setOnRefreshListener {
-            jokes.removeAll(jokes)
+            ad.models.removeAll(ad.models)
             SharedPrefs().getFavorites(this)?.forEach {
                 if (it != null) {
-                    jokes.add(it)
+                    ad.models.add(JokeView.Model(it, SharedPrefs().getFavorites(this)?.contains(it)!!, onClickShare, onClickStar))
                 }
             }
             addJoke()
@@ -126,6 +129,10 @@ class MainActivity : AppCompatActivity() {
     @UnstableDefault
     override fun onSaveInstanceState(outState: Bundle) {
         outState.run {
+            val jokes:MutableList<Joke> = mutableListOf()
+            ad.models.forEach {
+                jokes.add(it.joke)
+            }
             val s = stringify(dataListSerializer, jokes)
             putString(JOKE_LIST_KEY, s)
         }

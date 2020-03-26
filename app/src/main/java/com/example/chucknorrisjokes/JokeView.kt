@@ -7,33 +7,27 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.joke_layout.view.*
 
-class JokeView @JvmOverloads constructor(onClickShareParam: (Joke) -> Unit,
-                                         onClickStarParam: (Joke, Boolean) -> Unit,
-                                         context: Context,
+class JokeView @JvmOverloads constructor(context: Context,
                                          attrs: AttributeSet? = null,
                                          defStyleAttr: Int = 0) :
                                     ConstraintLayout(context, attrs, defStyleAttr)
 {
     val TAG: String = "JokeView"
-    var onClickShare: (Joke) -> Unit = onClickShareParam
-    var onClickStar: (Joke, Boolean) -> Unit = onClickStarParam
-    init {
-        View.inflate(context, R.layout.joke_layout, this)
-    }
-    data class Model(val joke: Joke, val starred: Boolean)
+    data class Model(val joke: Joke, val starred: Boolean, var onClickShare: (Joke) -> Unit, var onClickStar: (Joke, Boolean) -> Unit)
     fun setupView(model: Model){
+        View.inflate(context, R.layout.joke_layout, this)
         joke_text_view.text = model.joke.value
-        button_star_border.setOnClickListener { onClickStar(model.joke, true)
+        button_star_border.setOnClickListener { model.onClickStar(model.joke, true)
             enableStar()
         }
-        button_star_full.setOnClickListener { onClickStar(model.joke, false)
+        button_star_full.setOnClickListener { model.onClickStar(model.joke, false)
             disableStar()
         }
         if(model.starred)
             enableStar()
         else
             disableStar()
-        button_share.setOnClickListener { onClickShare(model.joke) }
+        button_share.setOnClickListener { model.onClickShare(model.joke) }
     }
     fun enableStar(){
         button_star_border.visibility = View.INVISIBLE

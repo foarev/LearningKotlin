@@ -16,7 +16,7 @@
         app:layout_constraintBottom_toBottomOf="@id/joke_layout"
         app:layout_constraintEnd_toStartOf="@id/button_share"
         android:gravity="center_horizontal"
-        android:text="@string/this_is_a_joke"
+        android:text=""
         android:id="@+id/joke_text_view"/>
     <ImageView
         android:layout_width="wrap_content"
