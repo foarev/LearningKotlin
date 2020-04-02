@@ -11,9 +11,8 @@ class SharedPrefs {
         context: Context,
         favorites: List<Joke?>?
     ) {
-        val settings: SharedPreferences
         val editor: SharedPreferences.Editor
-        settings = context.getSharedPreferences(
+        val settings: SharedPreferences = context.getSharedPreferences(
             PREFS_NAME,
             Context.MODE_PRIVATE
         )
@@ -40,9 +39,8 @@ class SharedPrefs {
     }
 
     fun getFavorites(context: Context): ArrayList<Joke?>? {
-        val settings: SharedPreferences
         var favorites: List<Joke?>?
-        settings = context.getSharedPreferences(
+        val settings = context.getSharedPreferences(
             PREFS_NAME,
             Context.MODE_PRIVATE
         )
