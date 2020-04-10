@@ -13,21 +13,21 @@ class JokeView @JvmOverloads constructor(context: Context,
                                     ConstraintLayout(context, attrs, defStyleAttr)
 {
     val TAG: String = "JokeView"
-    data class Model(val joke: Joke, val starred: Boolean, var onClickShare: (Joke) -> Unit, var onClickStar: (Joke, Boolean) -> Unit)
+    data class Model(val joke: Joke, val starred: Boolean, var onClickShare: (String) -> Unit, var onClickStar: (String) -> Unit, var onClickUnstar: (String) -> Unit)
     fun setupView(model: Model){
         View.inflate(context, R.layout.joke_layout, this)
         joke_text_view.text = model.joke.value
-        button_star_border.setOnClickListener { model.onClickStar(model.joke, true)
+        button_star_border.setOnClickListener { model.onClickStar(model.joke.id)
             enableStar()
         }
-        button_star_full.setOnClickListener { model.onClickStar(model.joke, false)
+        button_star_full.setOnClickListener { model.onClickUnstar(model.joke.id)
             disableStar()
         }
         if(model.starred)
             enableStar()
         else
             disableStar()
-        button_share.setOnClickListener { model.onClickShare(model.joke) }
+        button_share.setOnClickListener { model.onClickShare(model.joke.id) }
     }
     fun enableStar(){
         button_star_border.visibility = View.INVISIBLE

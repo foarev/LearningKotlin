@@ -7,7 +7,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class JokeTouchHelper(
     private val onItemMoved: (Int, Int) -> Unit ,
-    private val onJokeRemoved: (Int, Int) -> Unit,
+    private val onJokeRemoved: (Int) -> Unit,
     private val swiperefreshLayout:SwipeRefreshLayout
 ) : ItemTouchHelper(
     object : ItemTouchHelper.SimpleCallback(
@@ -24,7 +24,7 @@ class JokeTouchHelper(
         }
 
         override fun onSwiped(viewHolder: ViewHolder, swipeDir: Int) =
-            onJokeRemoved(viewHolder.adapterPosition, swipeDir)
+            onJokeRemoved(viewHolder.adapterPosition)
 
         override fun onSelectedChanged(viewHolder: ViewHolder?, actionState: Int) {
             super.onSelectedChanged(viewHolder, actionState)
