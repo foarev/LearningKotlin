@@ -11,7 +11,7 @@ class JokeAdapter(onBottomReachedParam: () -> Unit) : RecyclerView.Adapter<JokeA
 
     class JokeViewHolder(val v: JokeView) : RecyclerView.ViewHolder(v)
 
-    var models:List<JokeView.Model> = listOf()
+    var models:MutableList<JokeView.Model> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): JokeViewHolder {
         val v = JokeView(parent.context)

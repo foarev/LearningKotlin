@@ -13,11 +13,13 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import kotlinx.serialization.json.Json
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.list
 import kotlinx.serialization.json.Json.Companion.parse
 import kotlinx.serialization.json.Json.Companion.stringify
+import kotlinx.serialization.json.JsonConfiguration
 
 /**
  * @param context, helpful for sharing joke
@@ -100,12 +102,12 @@ class JokesViewModel(
                 onError = { e -> Log.wtf(TAG, e) },
                 onNext = {joke ->
                     jokes.add(joke)
-                    stared.add(false/*SharedPrefs().getFavorites(context)?.contains(joke)!!*/)
-                    _jokesSetChangedAction.value = ListAction.ItemInsertedAction(jokes.lastIndex)
+                    stared.add(false)
                 },
                 onComplete = {
                     _jokes.value = jokes
                     _stared.value = stared
+                    _jokesSetChangedAction.value = ListAction.DataSetChangedAction
                 }
             )
         )
@@ -116,6 +118,7 @@ class JokesViewModel(
         val stared:MutableList<Boolean> = mutableListOf()
         jokes.addAll(_jokes.value!!)
         stared.addAll(_stared.value!!)
+        onJokeUnStared(jokes[position].id)
         jokes.removeAt(position)
         stared.removeAt(position)
         _jokes.value = jokes
@@ -128,9 +131,9 @@ class JokesViewModel(
         val stared:MutableList<Boolean> = mutableListOf()
         _jokes.value = jokes
         _stared.value = stared
-        _jokesSetChangedAction.value = ListAction.DataSetChangedAction
         onSavedJokesRestored()
         onNewJokesRequest()
+        _jokesSetChangedAction.value = ListAction.DataSetChangedAction
     }
 
     fun onJokePositionChanged(previous: Int, target: Int) {
@@ -140,10 +143,10 @@ class JokesViewModel(
     }
 
     private fun onJokeStared(id: String) {
-        var i=0
         val stared = mutableListOf<Boolean>()
         stared.addAll(_stared.value!!)
-        _jokes.value?.forEach {joke -> if(joke.id==id){
+        _jokes.value?.forEachIndexed {index, joke ->
+            if(joke.id==id){
                 val sharedPrefs = SharedPrefs()
                 if(sharedPrefs.getFavorites(context)!=null)
                     sharedPrefs.addFavorite(context, joke)
@@ -151,30 +154,30 @@ class JokesViewModel(
                     val favJokes: MutableList<Joke> = mutableListOf()
                     favJokes.add(joke)
                     sharedPrefs.saveFavorites(context, favJokes)
-                    stared[i] = true
                 }
-                _jokesSetChangedAction.value = ListAction.ItemUpdatedAction(i)
-            } else i++
+                stared[index] = true
+                _stared.value = stared
+                _jokes.value = _jokes.value
+                _jokesSetChangedAction.value = ListAction.ItemUpdatedAction(index)
+            }
         }
-        _stared.value = stared
     }
 
     private fun onJokeUnStared(id: String) {
-        var i=0
         val stared = mutableListOf<Boolean>()
         stared.addAll(_stared.value!!)
-        _jokes.value?.forEach {joke ->
+        _jokes.value?.forEachIndexed {index, joke ->
             if(joke.id==id){
                 SharedPrefs().removeFavorite(context, joke)
-                _jokesSetChangedAction.value = ListAction.ItemUpdatedAction(i)
-                stared[i] = false
-            } else i++
+                stared[index] = false
+                _stared.value = stared
+                _jokes.value = _jokes.value
+                _jokesSetChangedAction.value = ListAction.ItemUpdatedAction(index)
+            }
         }
-        _stared.value = stared
     }
 
     private fun onJokeShared(id: String) {
-        var i=0
         _jokes.value?.forEach {joke ->
             if(joke.id==id){
                 val sendIntent: Intent = Intent().apply {
@@ -185,22 +188,22 @@ class JokesViewModel(
 
                 val shareIntent = Intent.createChooser(sendIntent, null)
                 context.startActivity(shareIntent)
-            } else i++
+            }
         }
     }
 
     private fun onSavedJokesRestored() {
         val jokes = mutableListOf<Joke>()
         val stared = mutableListOf<Boolean>()
-        SharedPrefs().getFavorites(context)?.forEach {
-            if (it != null) {
-                jokes.add(it)
+        SharedPrefs().getFavorites(context)?.forEach {joke ->
+            if (joke != null) {
+                jokes.add(joke)
                 stared.add(true)
-                _jokesSetChangedAction.value = ListAction.ItemInsertedAction(jokes.lastIndex)
+                _jokes.value = jokes
+                _stared.value = stared
+                _jokesSetChangedAction.value = ListAction.DataSetChangedAction
             }
         }
-        _jokes.value = jokes
-        _stared.value = stared
     }
 
     override fun onCleared() {
@@ -208,16 +211,15 @@ class JokesViewModel(
         super.onCleared()
     }
 
-    private fun List<Joke>.toJokesViewModel(): List<JokeView.Model> = map { joke ->
-        var i=0
+    private fun List<Joke>.toJokesViewModel(): List<JokeView.Model> = mapIndexed { index, joke ->
         var s=false
         if(_jokes.value!=null && _stared.value!=null) {
             val stared = mutableListOf<Boolean>()
             stared.addAll(_stared.value!!)
             _jokes.value?.forEach {j ->
-                if(j.id==joke.id && stared.size>i){
-                    s = stared[i]
-                } else i++
+                if(j.id==joke.id && stared.size>index){
+                    s = stared[index]
+                }
             }
         }
         JokeView.Model(joke, s, {id -> onJokeShared(id)}, {id -> onJokeStared(id)}, {id -> onJokeUnStared(id)})

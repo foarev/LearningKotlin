@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -12,10 +13,12 @@ import com.example.chucknorrisjokes.JokesViewModel.LoadingStatus
 import com.example.chucknorrisjokes.JokesViewModel.ListAction
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.joke_layout.*
 
 class MainActivity : AppCompatActivity() {
 
+    val TAG: String = "MainActivity"
     companion object {
         const val SHARED_PREFS = "SHARED_PREFS"
     }
@@ -32,10 +35,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val jokeAdapter: JokeAdapter = JokeAdapter{viewModel.onNewJokesRequest()}
+    private val llm: RecyclerView.LayoutManager = LinearLayoutManager(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        my_recycler_view.layoutManager = llm
+        my_recycler_view.adapter = jokeAdapter
 
         JokeTouchHelper(
             { fromPosition, toPosition -> viewModel.onJokePositionChanged(fromPosition, toPosition) },
@@ -45,9 +52,6 @@ class MainActivity : AppCompatActivity() {
 
         swipe_refresh_layout.setOnRefreshListener { viewModel.onJokesReset() }
 
-        my_recycler_view.layoutManager = LinearLayoutManager(this)
-        my_recycler_view.adapter = jokeAdapter
-
         observeViewModel()
     }
 
@@ -55,7 +59,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.jokeModels.observe(
             this,
             Observer { jokes: List<JokeView.Model> ->
-                jokeAdapter.models = jokes
+                jokeAdapter.models.clear()
+                jokeAdapter.models.addAll(jokes)
             })
 
         viewModel.jokesSetChangedAction.observe(
@@ -64,13 +69,13 @@ class MainActivity : AppCompatActivity() {
                 when(listAction) {
                     is ListAction.ItemUpdatedAction ->
                         jokeAdapter.notifyItemChanged(listAction.position)
-                    is ListAction.ItemRemovedAction->
+                    is ListAction.ItemRemovedAction ->
                         jokeAdapter.notifyItemRemoved(listAction.position)
-                    is ListAction.ItemInsertedAction->
+                    is ListAction.ItemInsertedAction ->
                         jokeAdapter.notifyItemInserted(listAction.position)
-                    is ListAction.ItemMovedAction->
+                    is ListAction.ItemMovedAction ->
                         jokeAdapter.notifyItemMoved(listAction.fromPosition, listAction.toPosition)
-                    is ListAction.DataSetChangedAction->
+                    is ListAction.DataSetChangedAction ->
                         jokeAdapter.notifyDataSetChanged()
                 }
             })
